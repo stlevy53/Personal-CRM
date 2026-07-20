@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-personal_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-personal_crm_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-personal_crm_dev} -d ${POSTGRES_DB:-personal_crm}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-personal_crm_dev}:${POSTGRES_PASSWORD:-devpassword}@db:5432/${POSTGRES_DB:-personal_crm}?sslmode=disable
+      PORT: "8080"
+      # Empty JWKS URL => auth is bypassed (local dev). Point at Acme staging to test real auth.
+      ACME_AUTH_JWKS_URL: ${ACME_AUTH_JWKS_URL:-}
+      ACME_AUTH_ISSUER: ${ACME_AUTH_ISSUER:-}
+      ACME_AUTH_AUDIENCE: ${ACME_AUTH_AUDIENCE:-}
+      # Demo seed retired — real baseline is loaded via tools/import. Set to true only for a throwaway demo DB.
+      SEED_DATA: ${SEED_DATA:-false}
+      # Comma-separated allowed CORS origins for the local UI dev server.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ui:
+    image: node:20-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      # Empty = UI auth bypassed (synthetic "Local Dev" user, same as API bypass).
+      # Set ACME_AUTH_ISSUER=https://auth.acme.example.com in your env to enable real OIDC.
+      VITE_ACME_AUTH_ISSUER: ${ACME_AUTH_ISSUER:-}
+      VITE_ACME_AUTH_CLIENT_ID: ${ACME_AUTH_CLIENT_ID:-personal-crm-local}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ui:/app
+      - ui_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  ui_node_modules:

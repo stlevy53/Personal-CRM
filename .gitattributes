@@ -1,0 +1,12 @@
+# Normalize line endings: store and check out text as LF on every platform.
+# Keeps `gofmt`/lint deterministic in CI regardless of the runner's autocrlf.
+* text=auto eol=lf
+
+# Binary assets (never normalize).
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.xlsx binary
+*.pdf  binary
