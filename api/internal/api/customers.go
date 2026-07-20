@@ -35,7 +35,7 @@ func (s *Server) listCustomers(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var out []Customer
+	out := []Customer{}
 	for rows.Next() {
 		var c Customer
 		if err := rows.Scan(&c.ID, &c.Name, &c.StudioID, &c.AppStatus, &c.SlackChannel, &c.Services); err != nil {
