@@ -1,10 +1,10 @@
 """
-Phase 2a ETL: extract MGT people + pods from the 'Pod Info' sheet.
+Phase 2a ETL: extract your-side people + pods from the 'Pod Info' sheet.
 
 'Pod Info' columns: Team | pod | Engineering POC | Product POC | Production POC
-Each POC cell is an MGT person; a person can appear in multiple pods/roles.
+Each POC cell is a person; a person can appear in multiple pods/roles.
 
-Outputs (reviewable; you can append the MGT people missing from the sheet):
+Outputs (reviewable; you can append people missing from the sheet):
   data/pods.csv    -> pod, team
   data/people.csv  -> name, initials, pod, roles
 """

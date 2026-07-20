@@ -1,7 +1,5 @@
 // Pure display helpers ported from assets/js/data.js (no data dependencies).
 
-export const PUBLISHER = "Acme Games";
-
 export const INTERACTION_TYPES: Record<string, { label: string; badge: string }> = {
   meeting: { label: "Meeting", badge: "badge-meeting" },
   call: { label: "Call", badge: "badge-call" },

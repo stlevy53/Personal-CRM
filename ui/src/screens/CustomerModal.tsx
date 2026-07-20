@@ -298,8 +298,6 @@ export function CustomerModal({ editingId, onClose, onSaved }: Props) {
 
       <div className="hier-preview">
         <span className="lbl">Hierarchy</span>
-        <span className="h">Acme Games</span>
-        <Icon name="chevron" />
         {hierPart(subName, "Subdivision")}
         <Icon name="chevron" />
         {hierPart(studioName, "Studio")}

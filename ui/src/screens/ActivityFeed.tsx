@@ -45,7 +45,7 @@ export function ActivityFeed() {
   ];
 
   const counts: Record<string, number> = {};
-  interactions.forEach((i) => (counts[i.gameTeamId] = (counts[i.gameTeamId] || 0) + 1));
+  interactions.forEach((i) => (counts[i.customerId] = (counts[i.customerId] || 0) + 1));
   const mostActive = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
@@ -54,7 +54,7 @@ export function ActivityFeed() {
     .flatMap((i) =>
       i.actionItems
         .filter((a) => a.status !== "closed" && a.dueDate)
-        .map((a) => ({ ...a, gameTeamId: i.gameTeamId }))
+        .map((a) => ({ ...a, customerId: i.customerId }))
     )
     .sort((a, b) => +new Date(a.dueDate!) - +new Date(b.dueDate!))
     .slice(0, 5);
@@ -66,7 +66,7 @@ export function ActivityFeed() {
           <div className="eyebrow">Workspace</div>
           <h1 className="page-title">Activity Feed</h1>
           <div className="page-sub">
-            Recent relationship activity across all {customers.length} customers MGT supports.
+            Recent relationship activity across all {customers.length} customers.
           </div>
         </div>
         <button
@@ -113,8 +113,8 @@ export function ActivityFeed() {
               </span>
             </div>
             {recent.map((i) => {
-              const team = customerById(i.gameTeamId);
-              const mgt = i.attendeesMgt.map(engineerName).join(", ");
+              const team = customerById(i.customerId);
+              const internal = i.attendeesInternal.map(engineerName).join(", ");
               const ext = i.attendeesExternal
                 .map((id) => crm.contactById(id)?.name || "")
                 .filter(Boolean)
@@ -124,7 +124,7 @@ export function ActivityFeed() {
                 <div
                   key={i.id}
                   className="card ix card-int"
-                  onClick={() => navigate("s05", { currentTeamId: i.gameTeamId })}
+                  onClick={() => navigate("s05", { currentTeamId: i.customerId })}
                 >
                   <div className="ix-head">
                     <div className="ix-title">{i.title}</div>
@@ -139,17 +139,17 @@ export function ActivityFeed() {
                       className="link"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate("s05", { currentTeamId: i.gameTeamId });
+                        navigate("s05", { currentTeamId: i.customerId });
                       }}
                     >
-                      {team?.name || i.gameTeamId}
+                      {team?.name || i.customerId}
                     </button>
                     <span className="sep">·</span>
-                    <span>MGT: {mgt || "—"}</span>
+                    <span>Internal: {internal || "—"}</span>
                     {ext && (
                       <>
                         <span className="sep">·</span>
-                        <span>Team: {ext}</span>
+                        <span>Contacts: {ext}</span>
                       </>
                     )}
                   </div>
@@ -210,7 +210,7 @@ export function ActivityFeed() {
                 <div className="text-sm text-secondary">No open commitments with due dates.</div>
               ) : (
                 dueSoon.map((a, idx) => {
-                  const c = customerById(a.gameTeamId);
+                  const c = customerById(a.customerId);
                   return (
                     <div className="side-row" key={idx}>
                       <div style={{ minWidth: 0 }}>

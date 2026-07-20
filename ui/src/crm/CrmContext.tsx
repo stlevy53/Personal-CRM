@@ -20,7 +20,6 @@ import type {
   Studio,
   Subdivision,
 } from "../api/types";
-import { PUBLISHER } from "./helpers";
 
 interface CrmData {
   loading: boolean;
@@ -42,7 +41,7 @@ interface CrmData {
   studioName: (id: string) => string;
   subdivisionName: (id: string) => string;
   studioSubdivisionId: (studioId: string) => string | null;
-  hierarchy: (c: Customer) => { publisher: string; subdivision: string; studio: string; label: string };
+  hierarchy: (c: Customer) => { subdivision: string; studio: string; label: string };
   appStatusMeta: (key: string) => { label: string; badge: string };
   customerById: (id: string) => Customer | undefined;
   contactById: (id: string) => Contact | undefined;
@@ -155,10 +154,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         const studio = studioOf(c.studioId);
         const sub = studio ? subById(studio.subdivisionId) : undefined;
         return {
-          publisher: PUBLISHER,
           subdivision: sub?.name || "—",
           studio: studio?.name || "—",
-          label: [PUBLISHER, sub?.name, studio?.name].filter(Boolean).join(" › "),
+          label: [sub?.name, studio?.name].filter(Boolean).join(" › "),
         };
       },
       appStatusMeta: (key) => {
@@ -169,9 +167,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       contactById: (id) => contacts.find((c) => c.id === id),
       interactionsByTeam: (teamId) =>
         interactions
-          .filter((i) => i.gameTeamId === teamId)
+          .filter((i) => i.customerId === teamId)
           .sort((a, b) => +new Date(b.date) - +new Date(a.date)),
-      contactsByTeam: (teamId) => contacts.filter((c) => c.gameTeamId === teamId),
+      contactsByTeam: (teamId) => contacts.filter((c) => c.customerId === teamId),
 
       reloadCustomers,
       reloadContacts,

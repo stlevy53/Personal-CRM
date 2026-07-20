@@ -16,7 +16,7 @@ func (s *Server) listInteractions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	where := ""
 	args := []any{}
-	if tid := r.URL.Query().Get("gameTeamId"); tid != "" {
+	if tid := r.URL.Query().Get("customerId"); tid != "" {
 		where = "WHERE customer_id = $1"
 		args = append(args, tid)
 	}
@@ -86,7 +86,7 @@ type scannable interface {
 func scanInteraction(row scannable) (Interaction, error) {
 	var i Interaction
 	err := row.Scan(&i.ID, &i.Type, &i.Title, &i.Date, &i.Notes, &i.Sentiment, &i.Tags,
-		&i.GameTeamID, &i.LoggedBy, &i.CreatedAt)
+		&i.CustomerID, &i.LoggedBy, &i.CreatedAt)
 	if i.Tags == nil {
 		i.Tags = []string{}
 	}
@@ -94,11 +94,11 @@ func scanInteraction(row scannable) (Interaction, error) {
 }
 
 func (s *Server) hydrateInteraction(ctx context.Context, i *Interaction) error {
-	i.AttendeesMgt = []string{}
+	i.AttendeesInternal = []string{}
 	i.AttendeesExternal = []string{}
 	i.ActionItems = []ActionItem{}
 
-	zr, err := s.pool.Query(ctx, `SELECT engineer_id FROM interaction_attendees_mgt WHERE interaction_id=$1`, i.ID)
+	zr, err := s.pool.Query(ctx, `SELECT engineer_id FROM interaction_attendees_internal WHERE interaction_id=$1`, i.ID)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (s *Server) hydrateInteraction(ctx context.Context, i *Interaction) error {
 			zr.Close()
 			return err
 		}
-		i.AttendeesMgt = append(i.AttendeesMgt, id)
+		i.AttendeesInternal = append(i.AttendeesInternal, id)
 	}
 	zr.Close()
 
@@ -158,9 +158,9 @@ type interactionInput struct {
 	Sentiment         *string      `json:"sentiment"`
 	ActionItems       []ActionItem `json:"actionItems"`
 	Tags              *[]string    `json:"tags"`
-	AttendeesMgt     *[]string    `json:"attendeesMgt"`
+	AttendeesInternal *[]string    `json:"attendeesInternal"`
 	AttendeesExternal *[]string    `json:"attendeesExternal"`
-	GameTeamID        *string      `json:"gameTeamId"`
+	CustomerID        *string      `json:"customerId"`
 	LoggedBy          *string      `json:"loggedBy"`
 }
 
@@ -171,8 +171,8 @@ func (s *Server) createInteraction(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if in.GameTeamID == nil || *in.GameTeamID == "" {
-		writeErr(w, http.StatusBadRequest, "gameTeamId is required")
+	if in.CustomerID == nil || *in.CustomerID == "" {
+		writeErr(w, http.StatusBadRequest, "customerId is required")
 		return
 	}
 
@@ -212,11 +212,11 @@ func (s *Server) createInteraction(w http.ResponseWriter, r *http.Request) {
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO interactions (id, type, title, date, notes, sentiment, tags, customer_id, logged_by)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-		id, typ, title, date, notes, sentiment, tags, *in.GameTeamID, loggedBy); err != nil {
+		id, typ, title, date, notes, sentiment, tags, *in.CustomerID, loggedBy); err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := insertAttendees(ctx, tx, id, derefSlice(in.AttendeesMgt), derefSlice(in.AttendeesExternal)); err != nil {
+	if err := insertAttendees(ctx, tx, id, derefSlice(in.AttendeesInternal), derefSlice(in.AttendeesExternal)); err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -230,7 +230,7 @@ func (s *Server) createInteraction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teamName string
-	_ = s.pool.QueryRow(ctx, `SELECT name FROM customers WHERE id=$1`, *in.GameTeamID).Scan(&teamName)
+	_ = s.pool.QueryRow(ctx, `SELECT name FROM customers WHERE id=$1`, *in.CustomerID).Scan(&teamName)
 	s.audit(ctx, "Interaction Logged", "Interaction", id, fmt.Sprintf("%s - %s", typ, teamName))
 
 	i, _ := s.loadInteraction(ctx, id)
@@ -282,8 +282,8 @@ func (s *Server) updateInteraction(w http.ResponseWriter, r *http.Request) {
 	if in.Tags != nil {
 		add("tags", *in.Tags)
 	}
-	if in.GameTeamID != nil {
-		add("customer_id", *in.GameTeamID)
+	if in.CustomerID != nil {
+		add("customer_id", *in.CustomerID)
 	}
 	if in.Date != nil && *in.Date != "" {
 		if parsed, err := time.Parse(time.RFC3339, *in.Date); err == nil {
@@ -301,8 +301,8 @@ func (s *Server) updateInteraction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if in.AttendeesMgt != nil || in.AttendeesExternal != nil {
-		if _, err := tx.Exec(ctx, `DELETE FROM interaction_attendees_mgt WHERE interaction_id=$1`, id); err != nil {
+	if in.AttendeesInternal != nil || in.AttendeesExternal != nil {
+		if _, err := tx.Exec(ctx, `DELETE FROM interaction_attendees_internal WHERE interaction_id=$1`, id); err != nil {
 			writeErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -310,7 +310,7 @@ func (s *Server) updateInteraction(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		if err := insertAttendees(ctx, tx, id, derefSlice(in.AttendeesMgt), derefSlice(in.AttendeesExternal)); err != nil {
+		if err := insertAttendees(ctx, tx, id, derefSlice(in.AttendeesInternal), derefSlice(in.AttendeesExternal)); err != nil {
 			writeErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -331,7 +331,7 @@ func (s *Server) updateInteraction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	i, _ := s.loadInteraction(ctx, id)
-	s.audit(ctx, "Interaction Updated", "Interaction", id, fmt.Sprintf("%s - %s", i.Type, i.GameTeamID))
+	s.audit(ctx, "Interaction Updated", "Interaction", id, fmt.Sprintf("%s - %s", i.Type, i.CustomerID))
 	writeJSON(w, http.StatusOK, i)
 }
 
@@ -374,10 +374,10 @@ func (s *Server) setActionStatus(w http.ResponseWriter, r *http.Request) {
 
 // --- helpers ---
 
-func insertAttendees(ctx context.Context, tx pgx.Tx, id string, mgt, external []string) error {
-	for _, e := range mgt {
+func insertAttendees(ctx context.Context, tx pgx.Tx, id string, internal, external []string) error {
+	for _, e := range internal {
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO interaction_attendees_mgt (interaction_id, engineer_id)
+			`INSERT INTO interaction_attendees_internal (interaction_id, engineer_id)
 			 VALUES ($1,$2) ON CONFLICT DO NOTHING`, id, e); err != nil {
 			return err
 		}

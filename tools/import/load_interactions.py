@@ -1,7 +1,7 @@
 """
 Phase 2B loader: build idempotent SQL from
   data/new_contacts.csv  -> contacts (external attendees discovered in logs)
-  data/interactions.csv  -> interactions (+ mgt / external attendee links)
+  data/interactions.csv  -> interactions (+ internal / external attendee links)
   data/team_notes.csv    -> team_notes
 
 Writes data/import_interactions.sql. IDs are deterministic slugs so re-runs upsert.
@@ -96,9 +96,9 @@ def main():
             f"ON CONFLICT (id) DO UPDATE SET type=EXCLUDED.type, title=EXCLUDED.title, "
             f"date=EXCLUDED.date, notes=EXCLUDED.notes, customer_id=EXCLUDED.customer_id;"
         )
-        for nm in [x.strip() for x in r["mgt_attendees"].split(";") if x.strip()]:
+        for nm in [x.strip() for x in r["internal_attendees"].split(";") if x.strip()]:
             lines.append(
-                f"INSERT INTO interaction_attendees_mgt (interaction_id, engineer_id) "
+                f"INSERT INTO interaction_attendees_internal (interaction_id, engineer_id) "
                 f"SELECT {q(iid)}, id FROM engineers WHERE name = {q(nm)} LIMIT 1 "
                 f"ON CONFLICT DO NOTHING;"
             )

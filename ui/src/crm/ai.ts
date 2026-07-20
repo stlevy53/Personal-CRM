@@ -35,24 +35,24 @@ export interface KnowledgeSnapshot {
   interactions: Interaction[];
   engineerName: (id: string | null | undefined) => string;
   appStatusLabel: (key: string) => string;
-  hierarchy: (c: Customer) => { publisher: string; subdivision: string; studio: string };
+  hierarchy: (c: Customer) => { subdivision: string; studio: string };
 }
 
 // Serialize the entire relationship dataset into a structured text knowledge base.
 export function buildContext(snap: KnowledgeSnapshot): string {
   const lines: string[] = [];
-  lines.push("# MGT RELATIONSHIP KNOWLEDGE BASE");
+  lines.push("# RELATIONSHIP KNOWLEDGE BASE");
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push("");
 
   snap.customers.forEach((t) => {
     const h = snap.hierarchy(t);
     lines.push(`## CUSTOMER: ${t.name} (id: ${t.id})`);
-    lines.push(`- Org hierarchy: ${h.publisher} > Subdivision ${h.subdivision} > Studio ${h.studio}`);
+    lines.push(`- Org hierarchy: Subdivision ${h.subdivision} > Studio ${h.studio}`);
     lines.push(`- App status: ${snap.appStatusLabel(t.appStatus)}`);
     lines.push(`- Primary Slack channel: ${t.slackChannel || "n/a"}`);
 
-    const contacts = snap.contacts.filter((c) => c.gameTeamId === t.id);
+    const contacts = snap.contacts.filter((c) => c.customerId === t.id);
     if (contacts.length) {
       lines.push("- Contacts:");
       contacts.forEach((c) =>
@@ -68,19 +68,19 @@ export function buildContext(snap: KnowledgeSnapshot): string {
     }
 
     const interactions = snap.interactions
-      .filter((i) => i.gameTeamId === t.id)
+      .filter((i) => i.customerId === t.id)
       .sort((a, b) => +new Date(b.date) - +new Date(a.date));
     if (interactions.length) {
       lines.push("- Logged interactions:");
       interactions.forEach((i) => {
-        const mgt = i.attendeesMgt.map(snap.engineerName).join(", ");
+        const internal = i.attendeesInternal.map(snap.engineerName).join(", ");
         const ext = i.attendeesExternal
           .map((id) => snap.contacts.find((c) => c.id === id)?.name || id)
           .join(", ");
         lines.push(
           `    - [${formatDate(i.date)}] ${INTERACTION_TYPES[i.type]?.label || "Other"}: "${i.title}"`
         );
-        lines.push(`        MGT attendees: ${mgt || "n/a"}; Team attendees: ${ext || "n/a"}`);
+        lines.push(`        Internal attendees: ${internal || "n/a"}; Contacts: ${ext || "n/a"}`);
         lines.push(`        Notes: ${i.notes}`);
         if (i.actionItems.length) {
           const ai = i.actionItems
@@ -104,10 +104,9 @@ export function buildContext(snap: KnowledgeSnapshot): string {
 
 function systemPrompt(snap: KnowledgeSnapshot): string {
   return [
-    "You are the MGT Relationship Intelligence assistant. MGT is an internal platform/infrastructure",
-    "organization that supports many game teams. You answer questions using ONLY the knowledge base below,",
-    "which contains game team profiles, contacts, relationship notes, and logged interactions (meetings,",
-    "calls, emails, Slack threads).",
+    "You are the Personal-CRM relationship intelligence assistant. You answer questions using ONLY the",
+    "knowledge base below, which contains company/contact profiles, relationship notes, and logged",
+    "interactions (meetings, calls, emails, messages).",
     "",
     "Guidelines:",
     "- Base every answer strictly on the knowledge base. If the information is not present, say so plainly.",

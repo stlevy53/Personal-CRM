@@ -99,8 +99,8 @@ export function CustomerProfile() {
               <div>
                 <div className="name">{team.name}</div>
                 <div className="crumb">
-                  Acme Games <span style={{ color: "var(--ink-4)" }}>→</span> <b>{h.subdivision}</b>{" "}
-                  <span style={{ color: "var(--ink-4)" }}>→</span> <b>{h.studio}</b>
+                  <b>{h.subdivision}</b> <span style={{ color: "var(--ink-4)" }}>→</span>{" "}
+                  <b>{h.studio}</b>
                 </div>
               </div>
               <AppStatusBadge status={team.appStatus} />
@@ -162,7 +162,7 @@ export function CustomerProfile() {
           />
         ) : (
           interactions.map((i) => {
-            const mgt = i.attendeesMgt.map(crm.engineerName).join(", ");
+            const internal = i.attendeesInternal.map(crm.engineerName).join(", ");
             const ext = i.attendeesExternal
               .map((id) => crm.contactById(id)?.name || "")
               .filter(Boolean)
@@ -188,11 +188,11 @@ export function CustomerProfile() {
                   <span className="sep">·</span>
                   <SentimentBadge sentiment={i.sentiment} />
                   <span className="sep">·</span>
-                  <span>MGT: {mgt || "—"}</span>
+                  <span>Internal: {internal || "—"}</span>
                   {ext && (
                     <>
                       <span className="sep">·</span>
-                      <span>Team: {ext}</span>
+                      <span>Contacts: {ext}</span>
                     </>
                   )}
                 </div>
@@ -324,7 +324,7 @@ export function CustomerProfile() {
         <div className="card card-pad">
           <textarea
             className="textarea"
-            placeholder="Add a team-level relationship note (visible to all MGT)…"
+            placeholder="Add a team-level relationship note (visible to everyone)…"
             style={{ minHeight: 90, marginBottom: 12 }}
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}

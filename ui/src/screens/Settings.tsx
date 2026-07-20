@@ -33,7 +33,7 @@ export function Settings() {
         appStatusLabel: (k) => crm.appStatusMeta(k).label,
         hierarchy: (c) => {
           const h = crm.hierarchy(c);
-          return { publisher: h.publisher, subdivision: h.subdivision, studio: h.studio };
+          return { subdivision: h.subdivision, studio: h.studio };
         },
       });
       showToast("Connection successful", "green");
@@ -114,7 +114,7 @@ export function Settings() {
           <Icon name="shield" />
           <div className="t">
             <b>Your key never leaves this browser.</b> It's stored only in this browser's
-            localStorage and sent only to the endpoint above — never to MGT servers.
+            localStorage and sent only to the endpoint above — never to any other server.
           </div>
         </div>
 

@@ -53,7 +53,7 @@ export interface Contact {
   email: string;
   slack: string;
   role: string;
-  gameTeamId: string;
+  customerId: string;
 }
 
 export interface ActionItem {
@@ -74,9 +74,9 @@ export interface Interaction {
   sentiment: Sentiment;
   actionItems: ActionItem[];
   tags: string[];
-  attendeesMgt: string[];
+  attendeesInternal: string[];
   attendeesExternal: string[];
-  gameTeamId: string;
+  customerId: string;
   loggedBy: string;
   createdAt: string;
 }

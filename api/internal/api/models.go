@@ -58,7 +58,7 @@ type Contact struct {
 	Email      string `json:"email"`
 	Slack      string `json:"slack"`
 	Role       string `json:"role"`
-	GameTeamID string `json:"gameTeamId"`
+	CustomerID string `json:"customerId"`
 }
 
 type ActionItem struct {
@@ -77,9 +77,9 @@ type Interaction struct {
 	Sentiment         string       `json:"sentiment"`
 	ActionItems       []ActionItem `json:"actionItems"`
 	Tags              []string     `json:"tags"`
-	AttendeesMgt     []string     `json:"attendeesMgt"`
+	AttendeesInternal []string     `json:"attendeesInternal"`
 	AttendeesExternal []string     `json:"attendeesExternal"`
-	GameTeamID        string       `json:"gameTeamId"`
+	CustomerID        string       `json:"customerId"`
 	LoggedBy          string       `json:"loggedBy"`
 	CreatedAt         time.Time    `json:"createdAt"`
 }

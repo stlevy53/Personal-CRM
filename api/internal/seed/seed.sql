@@ -8,7 +8,7 @@ INSERT INTO pods (id, name) VALUES
   ('devex',       'Developer Experience'),
   ('data',        'Data Platform');
 
--- MGT people
+-- Your-side people (interaction loggers)
 INSERT INTO engineers (id, name, initials, pod_id) VALUES
   ('mp', 'M. Patel',     'MP', 'cloud-infra'),
   ('sc', 'S. Chen',      'SC', 'cloud-infra'),
@@ -39,11 +39,11 @@ INSERT INTO studios (id, name, subdivision_id) VALUES
 
 -- Customers
 INSERT INTO customers (id, name, studio_id, app_status, slack_channel, services) VALUES
-  ('fv3',   'Frontier Quest 3',          'atlas-studio',   'production',     '#fv3-mgt-support',   '{k8s,aws,obs,ci}'),
-  ('poker', 'Acme Poker',          'vertex-casino', 'production',     '#poker-mgt-support', '{aws,db}'),
-  ('wwf',   'Puzzle Pals 3', 'vertex-casual', 'production',     '#wwf-mgt-support',   '{k8s,obs}'),
-  ('md',    'Merge Kingdoms!',       'gram',       'pre-production', '#md-mgt-support',    '{ci,aws}'),
-  ('hpp',   'Mystic Manor Puzzles', 'vertex-casual', 'pre-production', '#hpp-mgt-support',   '{aws,ci}');
+  ('fv3',   'Frontier Quest 3',          'atlas-studio',   'production',     '#fv3-support',   '{k8s,aws,obs,ci}'),
+  ('poker', 'Acme Poker',          'vertex-casino', 'production',     '#poker-support', '{aws,db}'),
+  ('wwf',   'Puzzle Pals 3', 'vertex-casual', 'production',     '#wwf-support',   '{k8s,obs}'),
+  ('md',    'Merge Kingdoms!',       'gram',       'pre-production', '#md-support',    '{ci,aws}'),
+  ('hpp',   'Mystic Manor Puzzles', 'vertex-casual', 'pre-production', '#hpp-support',   '{aws,ci}');
 
 -- Contacts
 INSERT INTO contacts (id, name, email, slack, role, customer_id) VALUES
@@ -98,8 +98,8 @@ INSERT INTO interactions (id, type, title, date, notes, tags, customer_id, logge
    'Reviewed a critical incident where the Poker DB connection pool hit max connections during a peak tournament. Implemented an emergency pool size increase. Longer term, this is what kicked off the read-replica conversation. Tyler very engaged.',
    '{database,incident,scaling}', 'poker', 'jl', now() - interval '72 days');
 
--- Internal (MGT) attendees
-INSERT INTO interaction_attendees_mgt (interaction_id, engineer_id) VALUES
+-- Internal (your-side) attendees
+INSERT INTO interaction_attendees_internal (interaction_id, engineer_id) VALUES
   ('INTR-0012','mp'), ('INTR-0012','sc'),
   ('INTR-0011','mp'),
   ('INTR-0010','jl'),
@@ -128,7 +128,7 @@ INSERT INTO interaction_attendees_external (interaction_id, contact_id) VALUES
 
 -- Action items (commitments)
 INSERT INTO action_items (interaction_id, position, text, owner_id, due_date, status) VALUES
-  ('INTR-0012', 0, 'MGT to provision additional node capacity for May event', 'mp', '2026-04-15', 'open'),
+  ('INTR-0012', 0, 'Provision additional node capacity for May event', 'mp', '2026-04-15', 'open'),
   ('INTR-0012', 1, 'Help FV3 build per-region latency dashboards', 'sc', '2026-04-30', 'open'),
   ('INTR-0012', 2, 'Schedule load test 2 weeks before event', 'mp', '2026-05-01', 'open'),
   ('INTR-0011', 0, 'Prepare onboarding deck for new FV3 hire', 'mp', '2026-04-10', 'open'),

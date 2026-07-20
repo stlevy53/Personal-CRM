@@ -8,11 +8,11 @@ Per decision:
   (POC(s) / Active Feature Adoptions / Misc notes: are ignored.)
 
 Attendee / author free-text is matched against the people roster (data/people.csv
--> MGT) and contacts (data/contacts.csv -> external). Unmatched fragments are
+-> internal roster) and contacts (data/contacts.csv -> external). Unmatched fragments are
 reported for review. Writes reviewable CSVs; does NOT touch the database.
 
 Outputs:
-  data/interactions.csv : customer,type,source,date,title,notes,mgt_attendees,external_attendees,unmatched
+  data/interactions.csv : customer,type,source,date,title,notes,internal_attendees,external_attendees,unmatched
   data/team_notes.csv   : customer,date,author,author_matched,context,notes
 """
 
@@ -104,9 +104,9 @@ def _strip_known(text, names):
 def parse_attendees(text, eng_names, con_names):
     """
     Delimiter-aware parse of an attendee/giver cell.
-    Returns dict: mgt, ext_existing, new[(name,email)], ambiguous, noise.
+    Returns dict: internal, ext_existing, new[(name,email)], ambiguous, noise.
     """
-    res = {"mgt": [], "ext_existing": [], "new": [], "ambiguous": [], "noise": []}
+    res = {"internal": [], "ext_existing": [], "new": [], "ambiguous": [], "noise": []}
     if not text:
         return res
     pieces = re.split(r"[\n,;]+", text)
@@ -114,9 +114,9 @@ def parse_attendees(text, eng_names, con_names):
         piece = piece.strip()
         if not piece:
             continue
-        mgt, rem = _strip_known(piece, eng_names)
+        internal, rem = _strip_known(piece, eng_names)
         ext, rem = _strip_known(rem, con_names)
-        res["mgt"].extend(mgt)
+        res["internal"].extend(internal)
         res["ext_existing"].extend(ext)
         # what's left of the piece -> candidate new external name
         rem = re.sub(r"\(.*?\)", " ", rem)  # drop parentheticals e.g. (Skyline Games)
@@ -196,8 +196,8 @@ def main():
 
             if current == "notes":
                 pa = parse_attendees(people_text, eng_names, con_names)
-                author = pa["mgt"][0] if pa["mgt"] else people_text
-                team_notes.append([cust, d, author, "yes" if pa["mgt"] else "no", title, body])
+                author = pa["internal"][0] if pa["internal"] else people_text
+                team_notes.append([cust, d, author, "yes" if pa["internal"] else "no", title, body])
                 counts["notes"] += 1
             else:
                 if not d:
@@ -219,7 +219,7 @@ def main():
                 unmatched = "; ".join(pa["ambiguous"] + pa["noise"])
                 interactions.append([
                     cust, itype, current, d, title, body,
-                    "; ".join(pa["mgt"]), "; ".join(ext_all), unmatched,
+                    "; ".join(pa["internal"]), "; ".join(ext_all), unmatched,
                 ])
                 counts[current] += 1
         if any(counts.values()):
@@ -228,7 +228,7 @@ def main():
     with open("data/interactions.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["customer", "type", "source", "date", "title", "notes",
-                    "mgt_attendees", "external_attendees", "unmatched"])
+                    "internal_attendees", "external_attendees", "unmatched"])
         w.writerows(interactions)
     with open("data/team_notes.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)

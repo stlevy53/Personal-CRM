@@ -74,8 +74,8 @@ export function ContactsDirectory() {
 
   const roles = [...new Set(crm.contacts.map((c) => c.role).filter(Boolean))].sort();
 
-  let rows: ContactRow[] = crm.contacts.map((c) => ({ c, team: teamName(c.gameTeamId) }));
-  if (teamFilter) rows = rows.filter((r) => r.c.gameTeamId === teamFilter);
+  let rows: ContactRow[] = crm.contacts.map((c) => ({ c, team: teamName(c.customerId) }));
+  if (teamFilter) rows = rows.filter((r) => r.c.customerId === teamFilter);
   if (roleFilter) rows = rows.filter((r) => r.c.role === roleFilter);
   if (search) {
     const q = search.toLowerCase();
@@ -150,7 +150,7 @@ export function ContactsDirectory() {
           role: ri !== -1 ? (r[ri] || "").trim() : "",
           email: ei !== -1 ? (r[ei] || "").trim() : "",
           slack: si !== -1 ? (r[si] || "").trim() : "",
-          gameTeamId: teamId,
+          customerId: teamId,
         });
         added++;
       }
@@ -260,10 +260,10 @@ export function ContactsDirectory() {
                   </td>
                   <td>{c.role || <span className="muted-cell">—</span>}</td>
                   <td>
-                    {c.gameTeamId ? (
+                    {c.customerId ? (
                       <button
                         className="link"
-                        onClick={() => navigate("s05", { currentTeamId: c.gameTeamId })}
+                        onClick={() => navigate("s05", { currentTeamId: c.customerId })}
                       >
                         {team}
                       </button>

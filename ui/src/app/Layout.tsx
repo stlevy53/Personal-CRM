@@ -61,7 +61,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <button className="brand" onClick={() => navigate("home")}>
           <img src="/favicon.png" alt="Personal-CRM" className="brand-mark" />
           <span className="brand-name">
-            MGT <span className="dim">CRM</span>
+            Personal <span className="dim">CRM</span>
           </span>
         </button>
 

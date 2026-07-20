@@ -47,7 +47,7 @@ export function LogInteraction() {
     ? crm.interactions.find((i) => i.id === params.editingInteractionId)
     : null;
 
-  const [teamSel, setTeamSel] = useState<string>(editing?.gameTeamId || params.currentTeamId || "");
+  const [teamSel, setTeamSel] = useState<string>(editing?.customerId || params.currentTeamId || "");
   const [type, setType] = useState(editing?.type || "meeting");
   const [sentiment, setSentiment] = useState<string>(editing?.sentiment || "neutral");
   const [date, setDate] = useState(editing ? new Date(editing.date).toISOString().slice(0, 10) : today());
@@ -70,7 +70,7 @@ export function LogInteraction() {
       : [{ text: "", ownerId: "", dueDate: "", status: "open" }]
   );
 
-  const [mgt, setMgt] = useState<Set<string>>(new Set(editing ? editing.attendeesMgt : []));
+  const [internal, setInternal] = useState<Set<string>>(new Set(editing ? editing.attendeesInternal : []));
   const [checkedExternal, setCheckedExternal] = useState<Set<string>>(
     new Set(editing ? editing.attendeesExternal : [])
   );
@@ -80,7 +80,7 @@ export function LogInteraction() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (editing && teamSel === editing.gameTeamId) return;
+    if (editing && teamSel === editing.customerId) return;
     setCheckedExternal(new Set());
     setPending([]);
   }, [teamSel]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -92,11 +92,11 @@ export function LogInteraction() {
     return crm.pods.find((p) => p.id === podId)?.name;
   }
 
-  function addMgt(id: string) {
-    setMgt((prev) => new Set(prev).add(id));
+  function addInternal(id: string) {
+    setInternal((prev) => new Set(prev).add(id));
   }
-  function removeMgt(id: string) {
-    setMgt((prev) => {
+  function removeInternal(id: string) {
+    setInternal((prev) => {
       const next = new Set(prev);
       next.delete(id);
       return next;
@@ -117,13 +117,13 @@ export function LogInteraction() {
     });
   }
 
-  async function createMgtPerson(name: string) {
+  async function createInternalPerson(name: string) {
     const n = name.trim();
     if (!n) return;
     const p = await CRM.people.create(n);
     await crm.reloadPeople();
-    addMgt(p.id);
-    showToast(`${p.name} added to the MGT directory`, "green");
+    addInternal(p.id);
+    showToast(`${p.name} added to the directory`, "green");
   }
 
   function addPendingContact(name: string) {
@@ -179,7 +179,7 @@ export function LogInteraction() {
           name: p.name,
           role: p.role,
           email: p.email,
-          gameTeamId: teamId,
+          customerId: teamId,
         });
         attendeesExternal.push(c.id);
       }
@@ -193,9 +193,9 @@ export function LogInteraction() {
         notes: notes.trim(),
         actionItems,
         tags: tagList,
-        attendeesMgt: [...mgt],
+        attendeesInternal: [...internal],
         attendeesExternal,
-        gameTeamId: teamId,
+        customerId: teamId,
       };
 
       if (editing) {
@@ -222,7 +222,7 @@ export function LogInteraction() {
   }
 
   const cancelTo = () =>
-    editing ? navigate("s05", { currentTeamId: editing.gameTeamId }) : navigate("home");
+    editing ? navigate("s05", { currentTeamId: editing.customerId }) : navigate("home");
 
   return (
     <section>
@@ -389,18 +389,18 @@ export function LogInteraction() {
 
         <div className="form-grid" style={{ marginTop: 18 }}>
           <div className="field">
-            <label>MGT Attendees</label>
+            <label>Your-Side Attendees</label>
             <AttendeePicker
-              selected={[...mgt].map((id) => {
+              selected={[...internal].map((id) => {
                 const p = crm.people.find((x) => x.id === id);
                 return { id, name: p ? p.name : id };
               })}
               options={crm.people.map((p) => ({ id: p.id, name: p.name, hint: podName(p.podId) }))}
-              onAdd={(o) => addMgt(o.id)}
-              onRemove={removeMgt}
-              onCreate={createMgtPerson}
-              createHint="as new MGT person"
-              placeholder="Search MGT team by name…"
+              onAdd={(o) => addInternal(o.id)}
+              onRemove={removeInternal}
+              onCreate={createInternalPerson}
+              createHint="as new person"
+              placeholder="Search by name…"
             />
           </div>
           <div className="field">

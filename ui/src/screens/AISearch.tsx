@@ -1,10 +1,10 @@
 import { Icon } from "../app/icons";
 
 const EXAMPLES = [
-  "What has MGT committed to for Frontier Quest 3 this quarter?",
-  "Which customers had live incidents in the last 30 days?",
-  "Summarize the open onboarding work across all teams.",
-  "What database scaling work is in flight right now?",
+  "What did I commit to in my last conversation with Acme Corp?",
+  "Which companies haven't I followed up with in the last 30 days?",
+  "Summarize the open action items across all my interviews.",
+  "What's the status of my conversation with Globex Inc?",
 ];
 
 export function AISearch() {

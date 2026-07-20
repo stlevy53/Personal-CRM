@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { AttendeePicker, type PickerOption } from "./AttendeePicker";
 
 const OPTIONS: PickerOption[] = [
-  { id: "1", name: "Alice Adams", hint: "MGT" },
-  { id: "2", name: "Bob Brown", hint: "MGT" },
+  { id: "1", name: "Alice Adams", hint: "Internal" },
+  { id: "2", name: "Bob Brown", hint: "Internal" },
 ];
 
 describe("AttendeePicker", () => {

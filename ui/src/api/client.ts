@@ -132,8 +132,8 @@ export const CRM = {
   },
 
   interactions: {
-    list: (gameTeamId?: string) =>
-      request<Interaction[]>(`/api/interactions${gameTeamId ? `?gameTeamId=${gameTeamId}` : ""}`),
+    list: (customerId?: string) =>
+      request<Interaction[]>(`/api/interactions${customerId ? `?customerId=${customerId}` : ""}`),
     get: (id: string) => request<Interaction>(`/api/interactions/${id}`),
     create: (data: Partial<Interaction>) =>
       request<Interaction>("/api/interactions", { method: "POST", body: JSON.stringify(data) }),

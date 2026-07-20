@@ -22,7 +22,7 @@ export function ContactModal({ editingId, presetTeamId, onClose, onSaved }: Prop
 
   const [name, setName] = useState(editing?.name || "");
   const [role, setRole] = useState(editing?.role || "");
-  const [team, setTeam] = useState(editing?.gameTeamId || presetTeamId || "");
+  const [team, setTeam] = useState(editing?.customerId || presetTeamId || "");
   const [email, setEmail] = useState(editing?.email || "");
   const [slack, setSlack] = useState((editing?.slack || "").replace(/^@/, ""));
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export function ContactModal({ editingId, presetTeamId, onClose, onSaved }: Prop
         role: role.trim(),
         email: email.trim(),
         slack: slack.trim() ? "@" + slack.trim().replace(/^@/, "") : "",
-        gameTeamId: team,
+        customerId: team,
       };
       if (editingId) {
         await CRM.contacts.update(editingId, data);

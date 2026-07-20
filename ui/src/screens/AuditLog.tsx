@@ -29,26 +29,26 @@ export function AuditLog() {
 
   function actor(id: string): { name: string; type: string; system: boolean } {
     if (id === "system" || !id) return { name: "System", type: "System", system: true };
-    if (id === "admin") return { name: "Admin", type: "MGT", system: false };
+    if (id === "admin") return { name: "Admin", type: "Internal", system: false };
     const person = crm.people.find((p) => p.id === id);
-    if (person) return { name: person.name, type: "MGT", system: false };
+    if (person) return { name: person.name, type: "Internal", system: false };
     const ct = crm.contactById(id);
     if (ct) return { name: ct.name, type: "Customer", system: false };
-    return { name: id, type: "MGT", system: false };
+    return { name: id, type: "Internal", system: false };
   }
 
   // Resolve the customer this audit row relates to, for click-through.
   function targetTeam(e: AuditEntry): string | null {
     if (e.recordType === "Interaction") {
       const ix = crm.interactions.find((i) => i.id === e.recordId);
-      return ix?.gameTeamId || null;
+      return ix?.customerId || null;
     }
     if (e.recordType === "Profile") {
       return crm.customerById(e.recordId) ? e.recordId : null;
     }
     if (e.recordType === "Contact") {
       const c = crm.contactById(e.recordId);
-      return c?.gameTeamId || null;
+      return c?.customerId || null;
     }
     return null;
   }

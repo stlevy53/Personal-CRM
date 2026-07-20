@@ -61,9 +61,9 @@ export function CallbackScreen() {
       <div className="login-page">
         <div className="login-card">
           <div className="login-logo">
-            <span className="brand-mark">Z</span>
+            <span className="brand-mark">P</span>
             <span className="brand-name">
-              MGT <span className="dim">CRM</span>
+              Personal <span className="dim">CRM</span>
             </span>
           </div>
           <h2 className="login-title" style={{ color: "var(--crit)" }}>
@@ -82,9 +82,9 @@ export function CallbackScreen() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <span className="brand-mark">Z</span>
+          <span className="brand-mark">P</span>
           <span className="brand-name">
-            MGT <span className="dim">CRM</span>
+            Personal <span className="dim">CRM</span>
           </span>
         </div>
         <p className="login-subtitle">Completing sign-in…</p>

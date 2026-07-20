@@ -20,7 +20,7 @@ func (s *Server) listContacts(w http.ResponseWriter, r *http.Request) {
 	out := []Contact{}
 	for rows.Next() {
 		var c Contact
-		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Slack, &c.Role, &c.GameTeamID); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Email, &c.Slack, &c.Role, &c.CustomerID); err != nil {
 			writeErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -39,7 +39,7 @@ type contactInput struct {
 	Email      *string `json:"email"`
 	Slack      *string `json:"slack"`
 	Role       *string `json:"role"`
-	GameTeamID *string `json:"gameTeamId"`
+	CustomerID *string `json:"customerId"`
 }
 
 func (s *Server) createContact(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +67,13 @@ func (s *Server) createContact(w http.ResponseWriter, r *http.Request) {
 	if in.Role != nil {
 		c.Role = *in.Role
 	}
-	if in.GameTeamID != nil {
-		c.GameTeamID = *in.GameTeamID
+	if in.CustomerID != nil {
+		c.CustomerID = *in.CustomerID
 	}
 
 	var customerID any
-	if c.GameTeamID != "" {
-		customerID = c.GameTeamID
+	if c.CustomerID != "" {
+		customerID = c.CustomerID
 	}
 	_, err := s.pool.Exec(ctx,
 		`INSERT INTO contacts (id, name, email, slack, role, customer_id)
@@ -85,9 +85,9 @@ func (s *Server) createContact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	detail := c.Name
-	if c.GameTeamID != "" {
+	if c.CustomerID != "" {
 		var teamName string
-		if s.pool.QueryRow(ctx, `SELECT name FROM customers WHERE id=$1`, c.GameTeamID).Scan(&teamName) == nil {
+		if s.pool.QueryRow(ctx, `SELECT name FROM customers WHERE id=$1`, c.CustomerID).Scan(&teamName) == nil {
 			detail = fmt.Sprintf("%s - %s", c.Name, teamName)
 		}
 	}
@@ -123,10 +123,10 @@ func (s *Server) updateContact(w http.ResponseWriter, r *http.Request) {
 	if in.Role != nil {
 		add("role", *in.Role)
 	}
-	if in.GameTeamID != nil {
+	if in.CustomerID != nil {
 		var cid any
-		if *in.GameTeamID != "" {
-			cid = *in.GameTeamID
+		if *in.CustomerID != "" {
+			cid = *in.CustomerID
 		}
 		add("customer_id", cid)
 	}
@@ -150,7 +150,7 @@ func (s *Server) updateContact(w http.ResponseWriter, r *http.Request) {
 	var c Contact
 	err = s.pool.QueryRow(ctx,
 		`SELECT id, name, email, slack, role, COALESCE(customer_id,'') FROM contacts WHERE id=$1`, id).
-		Scan(&c.ID, &c.Name, &c.Email, &c.Slack, &c.Role, &c.GameTeamID)
+		Scan(&c.ID, &c.Name, &c.Email, &c.Slack, &c.Role, &c.CustomerID)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return

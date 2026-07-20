@@ -1,4 +1,4 @@
--- Org hierarchy: Acme Games (publisher) -> Subdivision -> Studio -> Customer
+-- Org hierarchy: Subdivision -> Studio -> Customer (optional grouping levels)
 CREATE TABLE subdivisions (
     id         TEXT PRIMARY KEY,
     name       TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE studios (
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- MGT-internal teams + people (interaction loggers / internal attendees)
+-- Your-side teams + people (interaction loggers / internal attendees)
 CREATE TABLE pods (
     id   TEXT PRIMARY KEY,
     name TEXT NOT NULL
@@ -33,7 +33,7 @@ CREATE TABLE app_statuses (
     position INT  NOT NULL DEFAULT 0
 );
 
--- Customers (the "gameTeams" records; leaf of the org hierarchy)
+-- Customers (the company/opportunity records; leaf of the org hierarchy)
 CREATE TABLE customers (
     id            TEXT PRIMARY KEY,
     name          TEXT NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE interactions (
 CREATE INDEX idx_interactions_customer ON interactions (customer_id, date DESC);
 CREATE INDEX idx_interactions_date ON interactions (date DESC);
 
-CREATE TABLE interaction_attendees_mgt (
+CREATE TABLE interaction_attendees_internal (
     interaction_id TEXT NOT NULL REFERENCES interactions(id) ON DELETE CASCADE,
     engineer_id    TEXT NOT NULL,
     PRIMARY KEY (interaction_id, engineer_id)

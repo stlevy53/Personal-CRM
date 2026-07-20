@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS audit_log;
 DROP TABLE IF EXISTS action_items;
 DROP TABLE IF EXISTS interaction_attendees_external;
-DROP TABLE IF EXISTS interaction_attendees_mgt;
+DROP TABLE IF EXISTS interaction_attendees_internal;
 DROP TABLE IF EXISTS interactions;
 DROP TABLE IF EXISTS team_notes;
 DROP TABLE IF EXISTS contacts;

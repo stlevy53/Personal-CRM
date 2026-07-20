@@ -34,7 +34,7 @@ export function CustomersDirectory() {
           <div className="eyebrow">Relationships</div>
           <h1 className="page-title">Customers</h1>
           <div className="page-sub">
-            Every game and partner team MGT provides shared infrastructure to.
+            Every company and contact you're tracking.
           </div>
         </div>
         <button className="btn btn-primary" onClick={() => setAdding(true)}>
