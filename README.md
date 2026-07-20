@@ -1,70 +1,66 @@
 # Personal-CRM — Relationship Intelligence
 
-Internal "Relationship Intelligence" CRM for Acme Games' **MGT** (Mobile Game Tech) Systems Team.
-It tracks the relationships, interactions, and commitments between MGT and the game/partner teams
-it supports — and is being built so all of it becomes searchable through AI.
+A personal CRM for tracking the people, conversations, and commitments in your life outside a
+day job — job search and interview loops, professional networking, freelance clients, or any set
+of relationships you want to keep organized instead of scattered across notes, email, and Slack.
 
-**Status:** Active development — real 3-tier app running locally; MGT data imported; UI OIDC
-auth implemented; production internal deployment (K8s + RDS + Acme Auth) is the next milestone.
+**Status:** Active development — real 3-tier app running locally; UI OIDC auth implemented
+(optional, off by default); a from-scratch personal deployment is up to you.
 
-> This is a **real application** (React + Go + PostgreSQL), not the old static prototype. The
-> The original static prototype has been retired from this repo; the app below is the real thing.
+> This is a **real application** (React + Go + PostgreSQL), not a static prototype.
 
 ---
 
 ## What it does
 
-MGT provides shared infrastructure and platform tech (ZDK, LaunchPad, CI/CD, databases,
-observability) to the studios and game teams across Acme Games. The relationships, meetings, and
-commitments around that work used to live in people's heads, scattered notes, and Slack channels.
-This app turns that into structured, queryable institutional knowledge.
-
-- **Log interactions** — capture meetings, calls, emails, Slack threads, and other touchpoints
-  against a customer, with notes, tags, MGT attendees, external attendees, a **sentiment indicator**
-  (Positive / Neutral / Negative), and **action items (commitments)**. New customers, MGT people,
-  and external contacts can be created **inline** while logging via a type-ahead
+- **Log interactions** — capture meetings, calls, emails, messages, and other touchpoints against
+  a contact, with notes, tags, attendees, a **sentiment indicator** (Positive / Neutral /
+  Negative), and **action items (commitments)**. New companies and contacts can be created
+  **inline** while logging via a type-ahead
   [AttendeePicker](ui/src/app/AttendeePicker.tsx) — no leaving the form.
-- **Commitments / action items** — each action item is a structured commitment with an **owner**, a
-  **due date**, and a **status** (Open → In Progress → Closed). Status is editable inline, and open
-  counts surface on interaction cards and in the activity feed.
-- **Customer profiles** — a 360° view of each customer: org hierarchy (Acme Games → Subdivision → Studio
-  → Customer), app status, primary Slack channel, contacts, full interaction history, and
-  relationship (team) notes. New subdivisions, studios, and app statuses can be added inline.
-- **Customers directory** — card grid with search and subdivision / studio / app-status filters.
+- **Commitments / action items** — each action item is a structured commitment with an **owner**,
+  a **due date**, and a **status** (Open → In Progress → Closed). Status is editable inline, and
+  open counts surface on interaction cards and in the activity feed.
+- **Company profiles** — a 360° view of each company or opportunity you're tracking: an optional
+  org hierarchy, status, contacts, full interaction history, and free-form relationship notes.
+  New grouping levels and statuses can be added inline.
+- **Companies directory** — card grid with search and filters.
 - **Contacts directory** — add, edit, and bulk-import contacts via CSV, with search, filtering,
   sortable columns, and CSV export.
-- **Activity feed** — KPI strip plus a two-column feed of recent interactions across every customer,
-  with "Most active" and "Commitments due soon" side cards. Long interaction notes preserve their
-  original formatting and collapse to a few lines with an inline **Show more / Show less** toggle.
-- **Audit log** — every write (create/update/status change/note) is recorded with actor, timestamp,
-  record, and detail; filterable, with CSV export.
+- **Activity feed** — KPI strip plus a two-column feed of recent interactions across every
+  company, with "Most active" and "Commitments due soon" side cards. Long interaction notes
+  preserve their original formatting and collapse to a few lines with an inline **Show more /
+  Show less** toggle.
+- **Audit log** — every write (create/update/status change/note) is recorded with actor,
+  timestamp, record, and detail; filterable, with CSV export.
 - **AI Search** — *(UI placeholder, "Coming soon")* the page that will answer natural-language
-  questions ("What has MGT committed to for Frontier Quest 3 this quarter?") synthesized from everything
-  logged, with citations. The OpenAI-compatible provider plumbing already exists (configure it in
-  **Settings**; **Test Connection** works), but the search results UI is not wired up yet.
+  questions ("What did I commit to in my last conversation with Acme Corp?") synthesized from
+  everything logged, with citations. The OpenAI-compatible provider plumbing already exists
+  (configure it in **Settings**; **Test Connection** works), but the search results UI is not
+  wired up yet.
 
-The app intentionally has **zero external integration dependencies** to deliver value — no Jira,
-Slack, PagerDuty, or Airtable hookups required. Support ticketing, SLA tracking, and routing are
-part of the longer-term vision (see [`docs/TECHNICAL_PLAN.md`](docs/TECHNICAL_PLAN.md)) but are
-**deferred** beyond this phase.
+The app intentionally has **zero external integration dependencies** — no Jira, Slack, or
+scheduling hookups required. It's meant to run locally on your own machine with your own data.
 
 ### Organizational model
 
-Customers sit at the leaf of a four-level hierarchy:
+Contacts sit at the leaf of an optional, four-level hierarchy — use as much or as little of it as
+you want:
 
 ```
-Acme Games (publisher)
-  └── Subdivision        e.g. Nova, Vertex
-        └── Studio       e.g. Atlas Studio, Halcyon Games, Vertex Casino & Cards
-              └── Customer (game / project)   e.g. Frontier Quest 3, Acme Poker
+Group (top level)             e.g. "Job Search 2026"
+  └── Category                e.g. "Referral", "Recruiter", "Direct application"
+        └── Company           e.g. Acme Corp, a specific team, or a client
+              └── Contact     e.g. a recruiter, hiring manager, or interviewer
 ```
 
-Each customer carries an **App Status** (Prototype, Pre-Production, Production, Soft Launch, Live
-Worldwide, Sunsetting, Sunset — extendable inline).
+Each company carries a **Status** field (extendable inline) — repurpose the stages to whatever
+fits your use case, e.g. "in progress" for an active interview loop and "closed" once it's
+resolved.
 
-All users are MGT-internal with the **same full capabilities** — there is no role switcher and no
-role-gated screens. Access is gated by Acme Auth login (every Acme Games employee can authenticate);
-SSO-group-based authorization is part of the production vision, not a current feature.
+There is no role switcher and no role-gated screens — it's a single-user personal tool. Auth is
+off by default in local dev (see below) and only worth turning on if you deploy it somewhere
+network-reachable.
 
 ---
 
@@ -80,7 +76,7 @@ A real three-tier application, orchestrated for local dev with Docker Compose:
 │  :5173      │     │  :8080      │     │  :5432           │
 └─────────────┘     └─────────────┘     └──────────────────┘
       │                    ▲
-      │   OIDC (Acme Auth) │  JWT validated via Acme Auth JWKS
+      │   OIDC (optional)  │  JWT validated via JWKS
       └────────────────────┘  (bypassed in local dev when unconfigured)
 ```
 
@@ -89,14 +85,14 @@ A real three-tier application, orchestrated for local dev with Docker Compose:
   `ui/src/screens/`, the app shell/contexts in `ui/src/app/` and `ui/src/crm/`, auth in
   `ui/src/auth/`, and the design system in [`ui/src/styles.css`](ui/src/styles.css). Dev server on
   `:5173`.
-- **`api/`** — Go API using `pgx/v5`. Thin HTTP handlers (`internal/api`), Acme Auth JWT middleware
+- **`api/`** — Go API using `pgx/v5`. Thin HTTP handlers (`internal/api`), JWT auth middleware
   (`internal/auth`), config from env (`internal/config`), and embedded SQL migrations
   (`internal/db/migrations`). REST endpoints mirror the `CRM.*` shapes. Serves `:8080`
   (`/api/*`, `/healthz`).
 - **`db`** — PostgreSQL 16. Data persists in the `postgres_data` Docker volume.
 
-The UI never `fetch`es anywhere except through `CRM.*`. The Go handlers stay thin and share helpers
-(`writeJSON`, `decodeJSON`, `audit`).
+The UI never `fetch`es anywhere except through `CRM.*`. The Go handlers stay thin and share
+helpers (`writeJSON`, `decodeJSON`, `audit`).
 
 ---
 
@@ -122,16 +118,17 @@ docker compose exec -T db psql -U personal_crm_dev -d personal_crm -v ON_ERROR_S
 
 ### Auth in local dev
 
-Both tiers run in **dev-bypass** by default so you don't need a Acme Auth connection day-to-day:
+Both tiers run in **dev-bypass** by default, so nothing is required for day-to-day personal use:
 
 - **UI:** when `VITE_ACME_AUTH_ISSUER` is empty, the app skips OIDC and injects a synthetic
   "Local Dev" user.
 - **API:** when `ACME_AUTH_JWKS_URL` is empty, the middleware skips JWT validation and treats all
   requests as authenticated.
 
-To exercise the real OIDC flow locally, set `ACME_AUTH_ISSUER` (UI + API) and `ACME_AUTH_JWKS_URL`
-(API) in your environment before `docker compose up`. See
-[`docs/INFRASTRUCTURE.md`](docs/INFRASTRUCTURE.md) for the full auth setup.
+To exercise the real OIDC flow (only relevant if you deploy this somewhere reachable by others),
+set `ACME_AUTH_ISSUER` (UI + API) and `ACME_AUTH_JWKS_URL` (API) in your environment before
+`docker compose up`. See [`docs/INFRASTRUCTURE.md`](docs/INFRASTRUCTURE.md) for the full auth
+setup.
 
 ### Common commands
 
@@ -151,10 +148,10 @@ build) and API (fmt + vet + build + test) gates on every push/PR. Keep them gree
 
 ---
 
-## Authentication (Acme Auth / OIDC)
+## Authentication (optional, OIDC)
 
-The UI implements OIDC against **Acme Auth** (Acme Games' internal OIDC broker, issuer
-`https://auth.acme.example.com`, public client `personal-crm-local`) **with no third-party library**:
+The UI implements OIDC **with no third-party library**, for the case where you deploy this
+somewhere other people (or other devices you don't fully trust) can reach:
 
 - **Authorization Code flow with PKCE** (public client, no secret), scopes
   `openid profile email groups offline_access`.
@@ -172,9 +169,10 @@ Implementation: [`ui/src/auth/`](ui/src/auth/) — `pkce.ts`, `tokens.ts` (sessi
 [`CallbackScreen`](ui/src/screens/CallbackScreen.tsx) (code exchange, pre-auth path restore, CSRF
 state check).
 
-On the API, the [`internal/auth`](api/internal/auth) middleware validates JWTs against Acme Auth's
-JWKS endpoint and runs in **dev-bypass** when `ACME_AUTH_JWKS_URL` is unset. Enable it by setting
-that variable (plus `ACME_AUTH_ISSUER` / `ACME_AUTH_AUDIENCE`) in the API container env.
+On the API, the [`internal/auth`](api/internal/auth) middleware validates JWTs against a
+configured JWKS endpoint and runs in **dev-bypass** when `ACME_AUTH_JWKS_URL` is unset. Enable it
+by setting that variable (plus `ACME_AUTH_ISSUER` / `ACME_AUTH_AUDIENCE`) in the API container
+env — pointed at whatever OIDC provider you choose to use.
 
 ---
 
@@ -221,8 +219,8 @@ tools/import/        Python ETL example: extract_*.py read a source spreadsheet 
                      CSVs; load_*.py emit idempotent upsert SQL. Included as a reference
                      implementation — no sample workbook ships with this repo. (data/ is
                      git-ignored.)
-docs/                TECHNICAL_PLAN.md (product/architecture/roadmap),
-                     INFRASTRUCTURE.md (local dev + deploy spec).
+docs/                TECHNICAL_PLAN.md (architecture/roadmap), INFRASTRUCTURE.md (local dev
+                     + optional deploy spec).
 docker-compose.yml   Orchestrates ui + api + db (Postgres 16).
 AGENTS.md            Guidance for developers and AI coding agents — read first.
 ```
@@ -237,31 +235,32 @@ The Postgres schema (migrations in
 
 | Entity | Notes |
 |---|---|
-| `subdivisions` | Org level under the Acme Games publisher |
-| `studios` | Belong to a subdivision (`subdivision_id`) |
-| `customers` | Game/project (leaf); `studio_id`, `app_status`, `slack_channel`, `services[]` |
+| `subdivisions` | Optional top-level grouping above company |
+| `studios` | Optional second-level grouping (`subdivision_id`) |
+| `customers` | The company/opportunity you're tracking (leaf of the hierarchy); `studio_id`, `app_status`, `slack_channel`, `services[]` |
 | `app_statuses` | Lifecycle statuses (key/label/badge/position), extendable inline |
-| `pods` | MGT-internal teams |
-| `engineers` | MGT people (interaction loggers / internal attendees), grouped by pod |
-| `contacts` | People at a customer (`customer_id`, email, slack, role) |
+| `pods` | Optional grouping for people on your side (unused for a single-user setup) |
+| `engineers` | People on your side (interaction loggers), grouped by pod |
+| `contacts` | People at a company (`customer_id`, email, slack, role) |
 | `interactions` | type / title / date / notes / **sentiment** (`positive`/`neutral`/`negative`) / tags / `customer_id` / `logged_by` |
-| `interaction_attendees_mgt` | Interaction ↔ engineer join |
+| `interaction_attendees_mgt` | Interaction ↔ your-side-person join |
 | `interaction_attendees_external` | Interaction ↔ contact join |
 | `action_items` | Commitments: text, owner, due date, status (`open`/`in-progress`/`closed`) |
-| `team_notes` | Per-customer relationship notes (author + timestamp) |
+| `team_notes` | Per-company relationship notes (author + timestamp) |
 | `audit_log` | Actor, action, record type/id, detail, timestamp |
 
 ### Data
 
 This repo ships with no data of its own baked into version control. For a quick look at the app,
-set `SEED_DATA=true` to load the synthetic demo dataset in [`api/internal/seed/seed.sql`](api/internal/seed/seed.sql)
-(fictional teams, studios, and interactions — same shape as production data, none of it real).
+set `SEED_DATA=true` to load the synthetic demo dataset in
+[`api/internal/seed/seed.sql`](api/internal/seed/seed.sql) (fictional companies and interactions,
+none of it real).
 
-`tools/import/` is included as a reference implementation of the ETL pattern used to bring real
-operational data in from a spreadsheet (idempotent slug IDs, `ON CONFLICT DO UPDATE`). It expects
-a workbook at `docs/Personal-CRM Data.xlsx`, which is **not included** — point it at your own source
-data if you want to run it. Everything under `data/` is git-ignored; nothing written there is ever
-committed. See [`AGENTS.md`](AGENTS.md) for the import workflow.
+`tools/import/` is included as a reference implementation of the ETL pattern for bringing in real
+data from a spreadsheet (idempotent slug IDs, `ON CONFLICT DO UPDATE`). It expects a workbook at
+`docs/Personal-CRM Data.xlsx`, which is **not included** — point it at your own source data if you
+want to run it. Everything under `data/` is git-ignored; nothing written there is ever committed.
+See [`AGENTS.md`](AGENTS.md) for the import workflow.
 
 ---
 
@@ -296,8 +295,8 @@ GET    /api/audit
 | `home` | Activity Feed | Workspace |
 | `log` | Log Interaction | Workspace |
 | `ai` | AI Search *(Coming soon placeholder)* | Workspace |
-| `s06` | Customers (directory) | Relationships |
-| `s05` | Customer Profile | Relationships |
+| `s06` | Companies (directory) | Relationships |
+| `s05` | Company Profile | Relationships |
 | `contacts` | Contacts | Relationships |
 | `settings` | Settings (AI provider config) | Admin |
 | `s09` | Audit Log | Admin |
@@ -310,38 +309,36 @@ GET    /api/audit
 |---|---|
 | Log interaction (meeting / call / email / slack / other) | Working |
 | Edit interactions | Working |
-| Inline create of customers / MGT people / contacts while logging | Working |
-| Type-ahead attendee picker (MGT + external) | Working |
+| Inline create of companies / contacts while logging | Working |
+| Type-ahead attendee picker | Working |
 | Action items as commitments (owner, due date, status), inline status changes | Working |
 | Activity feed with live KPIs + side cards | Working |
 | Interaction notes: preserved formatting + Show more/less | Working |
 | Sentiment indicator per interaction (Positive / Neutral / Negative) | Working |
-| Customers directory (card grid, search, filters) | Working |
-| Customer profile (interactions / contacts / notes tabs) | Working |
-| Customer add / edit with inline metadata creation | Working |
+| Companies directory (card grid, search, filters) | Working |
+| Company profile (interactions / contacts / notes tabs) | Working |
+| Company add / edit with inline metadata creation | Working |
 | Contacts directory (add / edit / CSV import + export / search / filter / sort) | Working |
-| Relationship (team) notes | Working |
+| Relationship notes | Working |
 | Audit log (filter + CSV export) | Working |
 | Settings / AI provider config (with Test Connection) | Working |
-| New token-driven design system | Working |
-| UI OIDC authentication (Acme Auth, PKCE) | Implemented (dev-bypass locally) |
-| API JWT validation (Acme Auth JWKS) | Implemented (dev-bypass locally) |
+| Token-driven design system | Working |
+| OIDC authentication (optional, PKCE) | Implemented (dev-bypass locally) |
+| API JWT validation (optional) | Implemented (dev-bypass locally) |
 | AI Search results UI | Placeholder ("Coming soon") |
 | Data persistence | PostgreSQL (Docker volume locally) |
-| Production deployment (K8s + RDS + Acme Auth) | Planned — see `docs/INFRASTRUCTURE.md` |
-| Support tickets / SLA / routing; Jira / Slack / PagerDuty | Deferred (long-term vision) |
 
-See [`docs/TECHNICAL_PLAN.md`](docs/TECHNICAL_PLAN.md) for the full roadmap.
+See [`docs/TECHNICAL_PLAN.md`](docs/TECHNICAL_PLAN.md) for architecture notes and open ideas.
 
 ---
 
 ## Source & deployment
 
 - **Remote:** `origin` = `github.com/stlevy53/Personal-CRM`.
-- This repo ships with synthetic demo data only — no production data is ever committed (`data/`
+- This repo ships with synthetic demo data only — no real personal data is ever committed (`data/`
   stays out of version control; see `.gitignore`).
-- GitHub Pages **cannot** host this app (it needs the Go API + Postgres). A production deployment
-  sketch (Kubernetes + RDS + OIDC) is in [`docs/INFRASTRUCTURE.md`](docs/INFRASTRUCTURE.md). The
-  app currently runs locally only.
+- GitHub Pages **cannot** host this app (it needs the Go API + Postgres). It's designed to run
+  locally; see [`docs/INFRASTRUCTURE.md`](docs/INFRASTRUCTURE.md) if you ever want to deploy it
+  somewhere else.
 - Shell is Windows PowerShell: no `&&` chaining, no heredocs. Commit only when asked; keep `data/`
   out of commits.
