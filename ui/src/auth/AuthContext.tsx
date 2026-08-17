@@ -38,13 +38,11 @@ interface AuthContextValue {
 
 const AuthCtx = createContext<AuthContextValue | null>(null);
 
-const DEV_USER: AuthUser = {
-  sub: "local-dev",
-  email: "dev@acme.example.com",
-  name: "Local Dev",
-  groups: [],
-  initials: "LD",
-};
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
+const DEV_USER: AuthUser = DEMO_MODE
+  ? { sub: "demo-guest", email: "guest@example.com", name: "Demo Guest", groups: [], initials: "DG" }
+  : { sub: "local-dev", email: "dev@acme.example.com", name: "Local Dev", groups: [], initials: "LD" };
 
 // No-op bypass used for local dev when VITE_ACME_AUTH_ISSUER is unset.
 const DEV_CONTEXT: AuthContextValue = {

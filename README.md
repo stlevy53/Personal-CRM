@@ -9,6 +9,10 @@ of relationships you want to keep organized instead of scattered across notes, e
 
 > This is a **real application** (React + Go + PostgreSQL), not a static prototype.
 
+**[Live demo →](https://stlevy53.github.io/Personal-CRM/)** — the full UI running on static sample
+data (no backend, resets on reload). See [`ui/src/api/demoClient.ts`](ui/src/api/demoClient.ts)
+for how it's wired.
+
 ---
 
 ## What it does

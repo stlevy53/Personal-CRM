@@ -12,6 +12,9 @@ import type {
 } from "./types";
 import { refreshTokens } from "../auth/oidc";
 import { clearTokens, loadTokens, saveTokens } from "../auth/tokens";
+import { DemoCRM } from "./demoClient";
+
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -106,7 +109,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 // CRM mirrors the prototype's CRM.* namespaces, backed by the real API.
-export const CRM = {
+const RealCRM = {
   health: () => request<{ status: string; authEnabled: boolean }>("/healthz"),
 
   customers: {
@@ -173,3 +176,7 @@ export const CRM = {
   audit: { list: () => request<AuditEntry[]>("/api/audit") },
   stats: { get: () => request<Stats>("/api/stats") },
 };
+
+// VITE_DEMO_MODE=true (set by `npm run build:demo`) swaps in the in-browser
+// mock client so the app runs entirely static — no backend, for GitHub Pages.
+export const CRM = DEMO_MODE ? DemoCRM : RealCRM;

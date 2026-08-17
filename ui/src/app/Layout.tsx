@@ -18,6 +18,8 @@ interface NavSection {
   items: NavItem[];
 }
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
 export function Layout({ children }: { children: ReactNode }) {
   const { screen, navigate } = useNav();
   const { user, logout } = useAuth();
@@ -59,11 +61,18 @@ export function Layout({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <button className="brand" onClick={() => navigate("home")}>
-          <img src="/favicon.png" alt="Personal-CRM" className="brand-mark" />
+          <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="Personal-CRM" className="brand-mark" />
           <span className="brand-name">
             Personal <span className="dim">CRM</span>
           </span>
         </button>
+
+        {DEMO_MODE && (
+          <span className="kv-pill warn" title="Sample data — nothing here is real, changes reset on reload">
+            <span className="dot" />
+            Live Demo
+          </span>
+        )}
 
         <button className="topbar-search" onClick={() => navigate("ai")}>
           <Icon name="search" />
@@ -102,8 +111,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         ))}
         <div className="rail-foot">
-          <span className="dot" />
-          <span>Connected · live data</span>
+          <span className="dot" style={DEMO_MODE ? { background: "var(--warn)" } : undefined} />
+          <span>{DEMO_MODE ? "Demo · sample data" : "Connected · live data"}</span>
         </div>
       </aside>
 

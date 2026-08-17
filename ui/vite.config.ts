@@ -1,7 +1,10 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // The `demo` mode (npm run build:demo) builds for GitHub Pages at
+  // stlevy53.github.io/Personal-CRM/ — every other mode serves from root.
+  base: mode === "demo" ? "/Personal-CRM/" : "/",
   plugins: [react()],
   server: {
     host: true,
@@ -14,4 +17,4 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     css: false,
   },
-});
+}));
